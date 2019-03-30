@@ -21,54 +21,76 @@
 #age(18 vs 38)
 #evidence(behavior_no-brain,brain_no-brain,brain-brain)
 
-#dependent variable
-#dp(death penalty):1-7
-#por(perception of responsibility):1-7
-#pod(perception of danger):1-7
-#atcbs(ability to come back society):1-7
-
-#meditating variable
-#fr(free wil):1-5
-#js(justice sense):0-5
-#jwb(just world belief):1-6
-#kotl(knowledge of the law):1-7
-#kots(knowledge of the science):1-7
-#bitotc(belief in truth of the case):1-7
+# Measurements:
+        #dp(death penalty):1-7
+        #por(perception of responsibility):1-7
+        #pod(perception of danger):1-7
+        #atcbs(ability to come back society):1-7
+        #fr(free wil):1-5
+        #js(justice sense):0-5
+        #jwb(just world belief):1-6
+        #kotl(knowledge of the law):1-7
+        #kots(knowledge of the science):1-7
+        #bitotc(belief in truth of the case):1-7
 
 
 ### preparing ###
-Sys.setlocale("LC_ALL", "English")  # set local encoding to English
-Sys.setenv(LANG = "en") # set the feedback language to English
-
+curDir = dirname(rstudioapi::getSourceEditorContext()$path)
+setwd(curDir)
 rm(list = setdiff(ls(), lsf.str())) # remove all variables except functions
+curDir = dirname(rstudioapi::getSourceEditorContext()$path)
+
+Sys.setlocale("LC_ALL", "English")  # set local encoding to English
+Sys.setenv(LANG = "en")             # set the feedback language to English
+
+
+
+### load Packages
+library(tidyverse,psych)
 
 ## read data 
-total.data<-read.csv("Study1_data.csv",header = TRUE,sep = ',', stringsAsFactors=FALSE,na.strings=c(""," ","NA"))
+total.data <- read.csv("Study1_data.csv",header = TRUE,sep = ',', stringsAsFactors=FALSE, na.strings=c(""," ","NA"))
 
 ## exclude participants who pay insufficient attention to the test problem and the scenarios
-valid.data<-subset(total.data,Q34=="4"&Q2_13=="3",header=ture) # select the participants whose Q34=4 and Q2_13=3
-valid.data<-subset(valid.data,((valid.data$X18b =="2"|valid.data$X18bb=="2"|valid.data$X18no=="2")& Q25<=18)
-                   |((valid.data$X38b=="2"|valid.data$X38bb=="2"|valid.data$X38no=="2")& valid.data$Q25>18))
-check_missing1 <- is.na(valid.data$Q30)
-check_missing2 <- is.na(valid.data$Q31)
-check_missing3 <- is.na(valid.data$Q32)
-valid.data<-subset(valid.data,check_missing1==FALSE&check_missing2==FALSE&check_missing3==FALSE)
-valid.data<-data.frame(valid.data)
+valid.data <- total.data %>%
+        dplyr::filter(Q34=="4" & Q2_13=="3")   %>% # select the participants whose Q34=4 and Q2_13=3
+        dplyr::filter(((X18b =="2"| X18bb == "2" | X18no == "2") & Q25<=18) |
+                      ((X38b =="2"| X38bb == "2" | X38no == "2") & Q25>18)) %>% # select the participant with correct memory of age
+        dplyr::filter(!is.na(Q30) & !is.na(Q31) & !is.na(Q32)) %>%              # select no-na data
+        dplyr::mutate(CrimeAge1 = ifelse(X18b == "2" |X18bb=="2" | X18no=="2", "age17", "age37")) %>%
+        #dplyr::mutate(CrimeAge = replace_na(CrimeAge, "age37")) %>%
+        dplyr::mutate(CrimeAge2 = ifelse(X38b == "2" |X38bb=="2" | X38no=="2", "age37", "age17")) %>%
+        dplyr::mutate(CrimeAge = coalesce(CrimeAge1, CrimeAge2)) %>%                # coalesce two columns into one
+        dplyr::mutate(EvidenceType1 = ifelse(X18no == "2" |X38no =="2", "be_no_b"),
+                      EvidenceType2 = ifelse(X18b == "2" |X38b =="2", "b_no_b"),
+                      EvidenceType3 = ifelse(X18bb == "2" |X38bb =="2", "b_b")) %>%
+        dplyr::mutate(EvidenceType  = coalesce(EvidenceType1, EvidenceType2,EvidenceType3))
+                
+                
+
+#valid.data<-subset(valid.data,((valid.data$X18b =="2"|valid.data$X18bb=="2"|valid.data$X18no=="2")& Q25<=18)
+#                   |((valid.data$X38b=="2"|valid.data$X38bb=="2"|valid.data$X38no=="2")& valid.data$Q25>18))
+
+#check_missing1 <- is.na(valid.data$Q30)
+#check_missing2 <- is.na(valid.data$Q31)
+#check_missing3 <- is.na(valid.data$Q32)
+#valid.data<-subset(valid.data,check_missing1==FALSE&check_missing2==FALSE&check_missing3==FALSE)
+#valid.data<-data.frame(valid.data)
 
 ## select data of the independent variable ##
 
-age18<-subset(valid.data,valid.data$X18b =="2"|valid.data$X18bb=="2"|valid.data$X18no=="2")
-age38<-subset(valid.data,valid.data$X38b=="2"|valid.data$X38bb=="2"|valid.data$X38no=="2")
-be_no_b<-subset(valid.data,valid.data$X18no =="2"|valid.data$X38no=="2")
-b_no_b<-subset(valid.data,valid.data$X18b =="2"|valid.data$X38b=="2")
-b_b<-subset(valid.data,valid.data$X18bb =="2"|valid.data$X38bb=="2")
+#age18<-subset(valid.data,valid.data$X18b =="2"|valid.data$X18bb=="2"|valid.data$X18no=="2")
+#age38<-subset(valid.data,valid.data$X38b=="2"|valid.data$X38bb=="2"|valid.data$X38no=="2")
+#be_no_b<-subset(valid.data,valid.data$X18no =="2"|valid.data$X38no=="2")
+#b_no_b<-subset(valid.data,valid.data$X18b =="2"|valid.data$X38b=="2")
+#b_b<-subset(valid.data,valid.data$X18bb =="2"|valid.data$X38bb=="2")
 
-age18be_no_b<-subset(valid.data,valid.data$X18no=="2")
-age18b_no_b<-subset(valid.data,valid.data$X18b=="2")
-age18b_b<-subset(valid.data,valid.data$X18bb=="2")
-age38be_no_b<-subset(valid.data,valid.data$X38no=="2")
-age38b_no_b<-subset(valid.data,valid.data$X38b=="2")
-age38b_b<-subset(valid.data,valid.data$X38bb=="2")
+#age18be_no_b<-subset(valid.data,valid.data$X18no=="2")
+#age18b_no_b<-subset(valid.data,valid.data$X18b=="2")
+#age18b_b<-subset(valid.data,valid.data$X18bb=="2")
+#age38be_no_b<-subset(valid.data,valid.data$X38no=="2")
+#age38b_no_b<-subset(valid.data,valid.data$X38b=="2")
+#age38b_b<-subset(valid.data,valid.data$X38bb=="2")
 
 #be_no_b means behavior evidence with no brain image
 #b_no_b means brain evidence with no brain image
@@ -81,7 +103,7 @@ valid.data2<-lapply(valid.data,as.numeric)
 
 attach(valid.data2)
 
-library("psych")
+
 
 #free will
 free_will_total<- data.frame(Q2_3,Q2_8,Q2_12,Q2_16)
