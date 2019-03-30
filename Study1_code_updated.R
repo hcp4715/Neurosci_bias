@@ -59,6 +59,8 @@ valid.data <- total.data %>%
         dplyr::filter(!is.na(Q30) & !is.na(Q31) & !is.na(Q32)) %>%              # select no-na data
         dplyr::mutate(CrimeAge1 = ifelse(X18b == "2" |X18bb=="2" | X18no=="2", "age17", "age37"),
                       CrimeAge2 = ifelse(X38b == "2" |X38bb=="2" | X38no=="2", "age37", "age17")) %>%
+        dplyr::mutate(CrimeAge1 = ifelse(X18b == "2" |X18bb=="2" | X18no=="2", "age17", "age37")) %>%
+        dplyr::mutate(CrimeAge2 = ifelse(X38b == "2" |X38bb=="2" | X38no=="2", "age37", "age17")) %>%
         dplyr::mutate(CrimeAge = coalesce(CrimeAge1, CrimeAge2)) %>%                       # coalesce two columns into one
         dplyr::mutate(EvidenceType1 = ifelse(X18no == "2" |X38no =="2", "be_no_b"),
                       EvidenceType2 = ifelse(X18b == "2" |X38b =="2", "b_no_b"),
